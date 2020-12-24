@@ -11,10 +11,10 @@ submited by :
 
 def calcMaxVal(dataDictCdate, dictName):
     """
-
-    :param dataDictCdate:
-    :param dictName:
-    :return:
+        This function is calculate the max occur value for each category in the month .
+    :param dataDictCdate: dataDict[Cdate] - dictionary for the particular month
+    :param dictName: str  - "hashTags"   or  "mentions"  or  "webs"
+    :return: maxVal (ost occur value in category for the particular moth ) or "None"
     """
     if bool(dataDictCdate[dictName]):
         max = 0
@@ -31,11 +31,13 @@ def calcMaxVal(dataDictCdate, dictName):
 
 def countOccurs(dictData,innerDick,itersRe):
     """
-
-    :param dictData:
-    :param innerDick:
-    :param itersRe:
-    :return:
+        This function gets from one tweet text all the values for the particular category ,
+        and added the value to the corresponding date and set the counter of this value to one,
+        if  this value already exist - it will only raise the counter for this value by one .
+        (It treats  a little bit differently for some categories but there are manny line that same for all of them)
+    :param dictData:  dataDict[tweet_date]  - dictionary for the particular month
+    :param innerDick: str -  "hashTags" or "mentions" or "webs"
+    :param itersRe: all the patterns that occur in this text for that category .  (iter for match objects)
     """
     for itr in itersRe:
         if innerDick == "webs":
@@ -52,17 +54,18 @@ def countOccurs(dictData,innerDick,itersRe):
             dictData[innerDick][itr_string]+=1
 
 
-# listDted =[]
-# dataDict ={}
 
 def read_data_from_file():
     """
         This function is reading data from csv file "tweets.csv"  line by line with csv.DictReader ,
-        and
+        and reurn dict with needed information and list of all months
     :return:
+    1) dataDict = {month : {"hashTags":{hashtag1 : amount,hashtag1:amount, ... } , "mentions": { metion1: amount ,metion2: amount, ...} ,
+                                                                    "webs": {web1: amount, web2:amount,.... }} }
+    2)listDates = [yyyy-mm1 , yyyy-mm2 ,.....]
     """
     dataDict ={}
-    listDted =[]
+    listDates =[]
     hashPatern = "#([\w-]+)"
     mentPatern = "@[\w-]+"
     webPattern = "https*://([^/\s]*)"
@@ -74,15 +77,15 @@ def read_data_from_file():
             tweet_mentions =re.finditer(mentPatern,dict(row)["text"])
             tweet_webs = re.finditer(webPattern,dict(row)["text"])
             if dataDict.get(tweet_date) == None:
-                listDted.append(tweet_date)
-                hashTagDict = {}  #{"maxOccueItem":None,"maxOccurAmount":0}
-                mentionsDict = {}  #{"maxOccueItem":None,"maxOccurAmount":0}
-                websDict = {}   #{"maxOccueItem":None,"maxOccurAmount":0}
+                listDates.append(tweet_date)
+                hashTagDict = {}
+                mentionsDict = {}
+                websDict = {}
                 dataDict.update({tweet_date:{"hashTags": hashTagDict, "mentions": mentionsDict, "webs": websDict}})
             countOccurs(dataDict[tweet_date],"hashTags",tweet_hashTags)
             countOccurs(dataDict[tweet_date], "mentions", tweet_mentions)
             countOccurs(dataDict[tweet_date], "webs", tweet_webs)
-    return dataDict,listDted
+    return dataDict,listDates
 
 
 
@@ -90,16 +93,16 @@ def read_data_from_file():
 
 
 
-def write_data_to_file(dataDict,listDted):
+def write_data_to_file(dataDict,listDates):
     """
-
-    :param dataDict:
-    :param listDted:
-    :return:
+        This function is get dataDict and listDates that was produced by read_data_from_file function ,
+        and write csv file (tweet-data.csv) that contains columns : Month,Hashtag,Mention,Website.
+    :param dataDict: from the  read_data_from_file()
+    :param listDates: from the read_data_from_file()
     """
     with open("./tweets/tweet-data.csv","w", encoding='utf8') as write_file:
         write_file.write("Month,Hashtag,Mention,Website\n")
-        dateArray = np.array(listDted)
+        dateArray = np.array(listDates)
         dateArray.sort()
         for Cdate in dateArray :
             write_file.write(Cdate)
@@ -119,11 +122,11 @@ def write_data_to_file(dataDict,listDted):
 
 if __name__ == "__main__":
     """
-    
+    main program that solve the task with measuring and printing the time that it takes to do that (in sec).  
     """
     start = time.time()
-    dataDict, listDted = read_data_from_file()
-    write_data_to_file(dataDict, listDted)
+    dataDict, listDates = read_data_from_file()
+    write_data_to_file(dataDict, listDates)
     end = time.time()
     print(end - start)
 
